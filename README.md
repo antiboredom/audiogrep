@@ -4,17 +4,19 @@ Audiogrep
 Audiogrep transcribes audio files and then creates "audio supercuts" based on search phrases. It uses [CMU Pocketsphinx](http://cmusphinx.sourceforge.net/) for speech-to-text and [pydub](http://pydub.com/) to stitch things together.
 
 ##Requirements
-Clone this repository, and then install the other requirements.
+Clone this repository
+```
+git clone https://github.com/antiboredom/audiogrep.git
+```
+Install the python requirements.
 ```
 pip install -r requirements.txt
 ```
-
 Install [ffmpeg](http://ffmpeg.org/) with Ogg/Vorbis support. If you're on a mac with [homebrew](http://brew.sh/) you can install ffmpeg with:
 ```
 brew install ffmpeg --with-libvpx --with-libvorbis
 ```
-
-Install [CMU Pocketsphinx](http://cmusphinx.sourceforge.net/). For mac
+Finally, install [CMU Pocketsphinx](http://cmusphinx.sourceforge.net/). For mac
 users I followed [these instructions](https://github.com/watsonbox/homebrew-cmu-sphinx) to get it working:
 ```
 brew tap watsonbox/cmu-sphinx
