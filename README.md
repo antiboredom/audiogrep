@@ -1,7 +1,7 @@
 Audiogrep
 =========
 
-Audiogrep transcribes audio files and then creates "audio supercuts" based on search phrases.
+Audiogrep transcribes audio files and then creates "audio supercuts" based on search phrases. It uses [CMU Pocketsphinx](http://cmusphinx.sourceforge.net/) for speech-to-text and [pydub](http://pydub.com/) to stitch things together.
 
 ##Requirements
 Clone this repository, and then install the other requirements.
@@ -14,7 +14,7 @@ Install [ffmpeg](http://ffmpeg.org/) with Ogg/Vorbis support. If you're on a mac
 brew install ffmpeg --with-libvpx --with-libvorbis
 ```
 
-Install [cmu pocketsphinx](http://cmusphinx.sourceforge.net/). For mac
+Install [CMU Pocketsphinx](http://cmusphinx.sourceforge.net/). For mac
 users I followed [these instructions](https://github.com/watsonbox/homebrew-cmu-sphinx) to get it working:
 ```
 brew tap watsonbox/cmu-sphinx
