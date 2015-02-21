@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Audiogrep by antiboredom</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Audiogrep</h1>
+        <p>Creates audio supercuts.</p>
+
+        <p class="view"><a href="https://github.com/antiboredom/audiogrep">View the Project on GitHub <small>antiboredom/audiogrep</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/antiboredom/audiogrep/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/antiboredom/audiogrep/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/antiboredom/audiogrep">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="audiogrep" class="anchor" href="#audiogrep" aria-hidden="true"><span class="octicon octicon-link"></span></a>Audiogrep</h1>
+
+<p>Audiogrep transcribes audio files and then creates "audio supercuts" based on search phrases. It uses <a href="http://cmusphinx.sourceforge.net/">CMU Pocketsphinx</a> for speech-to-text and <a href="http://pydub.com/">pydub</a> to stitch things together.</p>
+
+<h2>
+<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Requirements</h2>
+
+<p>Clone this repository, and then install the other requirements.</p>
+
+<pre><code>pip install -r requirements.txt
+</code></pre>
+
+<p>Install <a href="http://ffmpeg.org/">ffmpeg</a> with Ogg/Vorbis support. If you're on a mac with <a href="http://brew.sh/">homebrew</a> you can install ffmpeg with:</p>
+
+<pre><code>brew install ffmpeg --with-libvpx --with-libvorbis
+</code></pre>
+
+<p>Install <a href="http://cmusphinx.sourceforge.net/">CMU Pocketsphinx</a>. For mac
+users I followed <a href="https://github.com/watsonbox/homebrew-cmu-sphinx">these instructions</a> to get it working:</p>
+
+<pre><code>brew tap watsonbox/cmu-sphinx
+brew install --HEAD watsonbox/cmu-sphinx/cmu-sphinxbase
+brew install --HEAD watsonbox/cmu-sphinx/cmu-sphinxtrain # optional
+brew install --HEAD watsonbox/cmu-sphinx/cmu-pocketsphinx
+</code></pre>
+
+<h2>
+<a id="how-to-use-it" class="anchor" href="#how-to-use-it" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to use it</h2>
+
+<p>First, transcribe the audio (you'll only need to do this once per audio track, but it can take some time)</p>
+
+<pre><code># transcribes all mp3s in the selected folder
+python audiogrep.py --input path/to/*.mp3 --transcribe
+</code></pre>
+
+<p>Then, basic use:</p>
+
+<pre><code># returns all phrases with the word 'word' in them
+python audiogrep.py --input path/to/*.mp3 --search 'word'
+</code></pre>
+
+<p>The previous example will extract phrase chunks containing the search term, but you can also just get individual words:</p>
+
+<pre><code>python audiogrep.py --input path/to/*.mp3 --search 'word' --output-mode word
+</code></pre>
+
+<p>If you add the '--regex' flag you can use regular expressions. For example:</p>
+
+<pre><code># creates a supercut of every instance of the words "spectre", "haunting" and "europe"
+python audiogrep.py --input path/to/*.mp3 --search 'spectre|haunting|europe' --output-mode word
+</code></pre>
+
+<p>You can also construct 'frankenstein' sentences (mileage may vary):</p>
+
+<pre><code># stupid joke
+python audiogrep.py --input path/to/*.mp3 --search 'my voice is my passport' --output-mode franken
+</code></pre>
+
+<h3>
+<a id="options" class="anchor" href="#options" aria-hidden="true"><span class="octicon octicon-link"></span></a>Options</h3>
+
+<p>audiogrep can take a number of options:</p>
+
+<h4>
+<a id="--input---i" class="anchor" href="#--input---i" aria-hidden="true"><span class="octicon octicon-link"></span></a>--input / -i</h4>
+
+<p>mp3 file or pattern for input</p>
+
+<h4>
+<a id="--output---o" class="anchor" href="#--output---o" aria-hidden="true"><span class="octicon octicon-link"></span></a>--output / -o</h4>
+
+<p>Name of the file to generate. By default this is "supercut.mp3"</p>
+
+<h4>
+<a id="--search---s" class="anchor" href="#--search---s" aria-hidden="true"><span class="octicon octicon-link"></span></a>--search / -s</h4>
+
+<p>Search term</p>
+
+<h4>
+<a id="--output-mode---m" class="anchor" href="#--output-mode---m" aria-hidden="true"><span class="octicon octicon-link"></span></a>--output-mode / -m</h4>
+
+<p>Splice together phrases, single words, or "frankenstein" sentences.
+Options are:</p>
+
+<ul>
+<li>sentence: (this is the default)</li>
+<li>word</li>
+<li>franken</li>
+</ul>
+
+<h4>
+<a id="--padding---p" class="anchor" href="#--padding---p" aria-hidden="true"><span class="octicon octicon-link"></span></a>--padding / -p</h4>
+
+<p>Time in milliseconds to add between audio segments. Default is 0.</p>
+
+<h4>
+<a id="--crossfade---c" class="anchor" href="#--crossfade---c" aria-hidden="true"><span class="octicon octicon-link"></span></a>--crossfade / -c</h4>
+
+<p>Time in milliseconds to crossfade audio segments. Default is 0.</p>
+
+<h4>
+<a id="--demo---d" class="anchor" href="#--demo---d" aria-hidden="true"><span class="octicon octicon-link"></span></a>--demo / -d</h4>
+
+<p>Show the results of the search without outputing a file</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/antiboredom">antiboredom</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
