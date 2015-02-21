@@ -1,9 +1,18 @@
+# requires ffmpeg and pocketsphinx
+# for macs, install pocketsphix with brew following these instructions: https://github.com/watsonbox/homebrew-cmu-sphinx
+# $ brew tap watsonbox/cmu-sphinx
+# $ brew install --HEAD watsonbox/cmu-sphinx/cmu-sphinxbase
+# $ brew install --HEAD watsonbox/cmu-sphinx/cmu-sphinxtrain # optional
+# $ brew install --HEAD watsonbox/cmu-sphinx/cmu-pocketsphinx
+
 import sys
 import os
 import subprocess
 import argparse
 import re
+import random
 from pydub import AudioSegment
+
 
 def convert_to_wav(files):
     '''Converts files to a format that pocketsphinx can deal wtih (16khz mono 16bit wav)'''
@@ -17,17 +26,23 @@ def convert_to_wav(files):
 
 def transcribe(files=[], pre=10, post=50):
     '''Uses pocketsphinx to transcribe audio files'''
+
     total = len(files)
+
     for i, f in enumerate(files):
+        print str(i+1) + '/' + str(total) + ' Transcribing ' + f
         filename = f.replace('.temp.wav', '') + '.transcription.txt'
-        print str(i) + '/' + str(total) + ' Transcribing ' + f
         transcript = subprocess.check_output(['pocketsphinx_continuous', '-infile', f, '-time', 'yes', '-logfn', '/dev/null', '-vad_prespeech', str(pre), '-vad_postspeech', str(post)])
+
         with open(filename, 'w') as outfile:
             outfile.write(transcript)
+
+        os.remove(f)
 
 
 def convert_timestamps(files):
     '''Converts pocketsphinx transcriptions to usable timestamps'''
+
     sentences = []
 
     for f in files:
@@ -40,8 +55,10 @@ def convert_timestamps(files):
 
         lines = [re.sub(r'\(.*?\)', '', l).strip().split(' ') for l in lines]
         lines = [l for l in lines if len(l) == 4]
+
         seg_start = -1
         seg_end = -1
+
         for index, line in enumerate(lines):
             word, start, end, conf = line
             if word == '<s>' or word == '<sil>':
@@ -95,9 +112,13 @@ def search(query, files, mode='sentence', regex=False):
                     if query.lower() == word[0]:
                         found = True
                 if found:
-                    start = float(word[1])
-                    end = float(word[2])
-                    out.append({'start': start, 'end': end, 'file': s['file'], 'words': word[0]})
+                    try:
+                        start = float(word[1])
+                        end = float(word[2])
+                        confidence = float(word[3])
+                        out.append({'start': start, 'end': end, 'file': s['file'], 'words': word[0], 'confidence': confidence})
+                    except:
+                        continue
 
     return out
 
@@ -107,7 +128,9 @@ def franken_sentence(sentence, files):
     for word in sentence.split(' '):
         results = search(word, files, mode='word')
         if len(results) > 0:
-            out = out + [results[0]]
+            #sorted(results, key=lambda k: k['confidence'])
+            #out = out + [results[0]]
+            out = out + [random.choice(results)]
 
     return out
 
@@ -116,22 +139,25 @@ def compose(segments, out='out.mp3', padding=0, crossfade=0):
     '''Stiches together a new audiotrack'''
     audio = AudioSegment.empty()
     for i, s in enumerate(segments):
-        start = s['start'] * 1000
-        end = s['end'] * 1000
-        f = s['file'].replace('.transcription.txt', '')
-        print start, end, f
-        if f.endswith('.wav'):
-            segment = AudioSegment.from_wav(f)[start:end]
-        elif f.endswith('.mp3'):
-            segment = AudioSegment.from_mp3(f)[start:end]
+        try:
+            start = s['start'] * 1000
+            end = s['end'] * 1000
+            f = s['file'].replace('.transcription.txt', '')
+            print start, end, f
+            if f.endswith('.wav'):
+                segment = AudioSegment.from_wav(f)[start:end]
+            elif f.endswith('.mp3'):
+                segment = AudioSegment.from_mp3(f)[start:end]
 
-        if i > 0:
-            audio = audio.append(segment, crossfade=crossfade)
-        else:
-            audio = audio + segment
+            if i > 0:
+                audio = audio.append(segment, crossfade=crossfade)
+            else:
+                audio = audio + segment
 
-        if padding > 0:
-            audio = audio + AudioSegment.silent(duration=padding)
+            if padding > 0:
+                audio = audio + AudioSegment.silent(duration=padding)
+        except:
+            continue
 
     audio.export(out, format=os.path.splitext(out)[1].replace('.', ''))
 
