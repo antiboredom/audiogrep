@@ -9,13 +9,13 @@ Clone this repository, and then install the other requirements.
 pip install -r requirements.txt
 ```
 
-Install [ffmpeg](http://ffmpeg.org/) with Ogg/Vorbis support. If you're on a mac with homebrew you can install ffmpeg with:
+Install [ffmpeg](http://ffmpeg.org/) with Ogg/Vorbis support. If you're on a mac with [homebrew](http://brew.sh/) you can install ffmpeg with:
 ```
 brew install ffmpeg --with-libvpx --with-libvorbis
 ```
 
 Install [cmu pocketsphinx](http://cmusphinx.sourceforge.net/). For mac
-users I had to use follow [these instructions](https://github.com/watsonbox/homebrew-cmu-sphinx) to get it working:
+users I followed [these instructions](https://github.com/watsonbox/homebrew-cmu-sphinx) to get it working:
 ```
 brew tap watsonbox/cmu-sphinx
 brew install --HEAD watsonbox/cmu-sphinx/cmu-sphinxbase
@@ -38,10 +38,10 @@ The previous example will extract phrase chunks containing the search term, but 
 ```
 python audiogrep.py --input path/to/*.mp3 --search 'word' --output-mode word
 ```
-If you add the '--regex' flag you can use regular expressions. For
-example:
+If you add the '--regex' flag you can use regular expressions. For example:
 ```
-python audiogrep.py --input path/to/*.mp3 --search 'any|of|these|words' --output-mode word
+# creates a supercut of every instance of the words "spectre", "haunting" and "europe"
+python audiogrep.py --input path/to/*.mp3 --search 'spectre|haunting|europe' --output-mode word
 ```
 You can also construct 'frankenstein' sentences (mileage may vary):
 ```
