@@ -15,8 +15,7 @@ brew install ffmpeg --with-libvpx --with-libvorbis
 ```
 
 Install [cmu pocketsphinx](http://cmusphinx.sourceforge.net/). For mac
-users I had to use
-for mac users, follow [these instructions](https://github.com/watsonbox/homebrew-cmu-sphinx)
+users I had to use follow [these instructions](https://github.com/watsonbox/homebrew-cmu-sphinx) to get it working:
 ```
 brew tap watsonbox/cmu-sphinx
 brew install --HEAD watsonbox/cmu-sphinx/cmu-sphinxbase
@@ -25,8 +24,7 @@ brew install --HEAD watsonbox/cmu-sphinx/cmu-pocketsphinx
 ```
 
 ##How to use it
-First, transcribe the audio (you'll only need to do this once per audio
-track, but it can take some time)
+First, transcribe the audio (you'll only need to do this once per audio track, but it can take some time)
 ```
 # transcribes all mp3s in the selected folder
 python audiogrep.py --input path/to/*.mp3 --transcribe
@@ -36,23 +34,19 @@ Then, basic use:
 # returns all phrases with the word 'word' in them
 python audiogrep.py --input path/to/*.mp3 --search 'word'
 ```
-The previous example will extract phrase chunks containing the search
-term, but you can also just get individual words:
+The previous example will extract phrase chunks containing the search term, but you can also just get individual words:
 ```
-python audiogrep.py --input path/to/*.mp3 --search 'word' --output-mode
-word
+python audiogrep.py --input path/to/*.mp3 --search 'word' --output-mode word
 ```
 If you add the '--regex' flag you can use regular expressions. For
 example:
 ```
-python audiogrep.py --input path/to/*.mp3 --search 'any|of|these|words' --output-mode
-word
+python audiogrep.py --input path/to/*.mp3 --search 'any|of|these|words' --output-mode word
 ```
 You can also construct 'frankenstein' sentences (mileage may vary):
 ```
 # stupid joke
-python audiogrep.py --input path/to/*.mp3 --search 'my voice is my
-passport' --output-mode franken
+python audiogrep.py --input path/to/*.mp3 --search 'my voice is my passport' --output-mode franken
 ```
 
 ###Options
