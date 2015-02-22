@@ -135,9 +135,15 @@ def franken_sentence(sentence, files):
     return out
 
 
-def compose(segments, out='out.mp3', padding=0, crossfade=0):
+def compose(segments, out='out.mp3', padding=0, crossfade=0, layer=False):
     '''Stiches together a new audiotrack'''
+
     audio = AudioSegment.empty()
+
+    if layer:
+        total_time = max([s['end'] - s['start'] for s in segments]) * 1000
+        audio = AudioSegment.silent(duration=total_time)
+
     for i, s in enumerate(segments):
         try:
             start = s['start'] * 1000
@@ -149,10 +155,13 @@ def compose(segments, out='out.mp3', padding=0, crossfade=0):
             elif f.endswith('.mp3'):
                 segment = AudioSegment.from_mp3(f)[start:end]
 
-            if i > 0:
-                audio = audio.append(segment, crossfade=crossfade)
+            if layer:
+                audio = audio.overlay(segment, times=1)
             else:
-                audio = audio + segment
+                if i > 0:
+                    audio = audio.append(segment, crossfade=crossfade)
+                else:
+                    audio = audio + segment
 
             if padding > 0:
                 audio = audio + AudioSegment.silent(duration=padding)
@@ -175,6 +184,7 @@ if __name__ == '__main__':
     parser.add_argument('--padding', '-p', dest='padding', type=int, help='Milliseconds of padding between the audio segments')
     parser.add_argument('--crossfade', '-c', dest='crossfade', type=int, default=0, help='Crossfade between clips')
     parser.add_argument('--demo', '-d', dest='demo', action='store_true', help='Just display the search results without actually making the file')
+    parser.add_argument('--layer', '-l', dest='layer', action='store_true', help='Overlay the audio segments')
 
     args = parser.parse_args()
 
@@ -198,4 +208,4 @@ if __name__ == '__main__':
                 else:
                     print s['words']
         else:
-            compose(segments, out=args.outputfile, padding=args.padding, crossfade=args.crossfade)
+            compose(segments, out=args.outputfile, padding=args.padding, crossfade=args.crossfade, layer=args.layer)
