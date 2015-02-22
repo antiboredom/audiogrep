@@ -138,6 +138,10 @@ def franken_sentence(sentence, files):
 def compose(segments, out='out.mp3', padding=0, crossfade=0, layer=False):
     '''Stiches together a new audiotrack'''
 
+    files = {}
+
+    working_segments = []
+
     audio = AudioSegment.empty()
 
     if layer:
@@ -149,11 +153,15 @@ def compose(segments, out='out.mp3', padding=0, crossfade=0, layer=False):
             start = s['start'] * 1000
             end = s['end'] * 1000
             f = s['file'].replace('.transcription.txt', '')
+            if f not in files:
+                if f.endswith('.wav'):
+                    files[f] = AudioSegment.from_wav(f)
+                elif f.endswith('.mp3'):
+                    files[f] = AudioSegment.from_mp3(f)
+
+            segment = files[f][start:end]
+
             print start, end, f
-            if f.endswith('.wav'):
-                segment = AudioSegment.from_wav(f)[start:end]
-            elif f.endswith('.mp3'):
-                segment = AudioSegment.from_mp3(f)[start:end]
 
             if layer:
                 audio = audio.overlay(segment, times=1)
@@ -165,10 +173,13 @@ def compose(segments, out='out.mp3', padding=0, crossfade=0, layer=False):
 
             if padding > 0:
                 audio = audio + AudioSegment.silent(duration=padding)
+
+            working_segments.append(s)
         except:
             continue
 
     audio.export(out, format=os.path.splitext(out)[1].replace('.', ''))
+    return working_segments
 
 
 if __name__ == '__main__':
