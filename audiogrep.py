@@ -213,6 +213,11 @@ if __name__ == '__main__':
         else:
             segments = search(args.search, args.inputfile, mode=args.outputmode, regex=args.regex)
 
+        if len(segments) == 0:
+            print 'No results for "' + args.search + '"'
+            sys.exit()
+
+        print 'Generating supercut'
         if args.demo:
             for s in segments:
                 if args.outputmode == 'sentence':
