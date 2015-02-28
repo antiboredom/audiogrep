@@ -174,6 +174,7 @@ def compose(segments, out='out.mp3', padding=0, crossfade=0, layer=False):
             if padding > 0:
                 audio = audio + AudioSegment.silent(duration=padding)
 
+            s['duration'] = len(segment)
             working_segments.append(s)
         except:
             continue
