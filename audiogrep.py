@@ -204,6 +204,13 @@ if __name__ == '__main__':
         parser.error('Please transcribe files [--transcribe] or search [--search SEARCH] already transcribed files')
 
     if args.transcribe:
+        try:
+            devnull = open(os.devnull)
+            subprocess.Popen(['pocketsphinx_continuous', '--invalid-args'], stdout=devnull, stderr=devnull).communicate()
+        except OSError as e:
+            if e.errno == os.errno.ENOENT:
+                print 'Error: Please install pocketsphinx to transcribe files.'
+                sys.exit()
         files = convert_to_wav(args.inputfile)
         transcribe(files)
 
