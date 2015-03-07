@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # requires ffmpeg and pocketsphinx
 # for macs, install pocketsphix with brew following these instructions: https://github.com/watsonbox/homebrew-cmu-sphinx
 # $ brew tap watsonbox/cmu-sphinx
