@@ -63,7 +63,7 @@ def convert_timestamps(files):
 
         for index, line in enumerate(lines):
             word, start, end, conf = line
-            if word == '<s>' or word == '<sil>':
+            if word == '<s>' or word == '<sil>' or word == '</s>':
                 if seg_start == -1:
                     seg_start = index
                     seg_end = -1
@@ -74,8 +74,13 @@ def convert_timestamps(files):
                     words = lines[seg_start+1:seg_end]
                     start = float(lines[seg_start][1])
                     end = float(lines[seg_end][1])
-                    sentences.append({'start': start, 'end': end, 'words': words, 'file': f})
-                    seg_start = seg_end = -1
+                    if words:
+                        sentences.append({'start': start, 'end': end, 'words': words, 'file': f})
+                    if word == '</s>':
+                        seg_start = -1
+                    else:
+                        seg_start = seg_end
+                    seg_end = -1
 
     return sentences
 
