@@ -212,6 +212,14 @@ if __name__ == '__main__':
     if not args.search and not args.transcribe:
         parser.error('Please transcribe files [--transcribe] or search [--search SEARCH] already transcribed files')
 
+    inputfiles = []
+    if args.recur:
+        for root, dirname, filenames in os.walk(str(args.inputfile[0])):
+            for filename in fnmatch.filter(filenames, '*mp3'):
+                inputfiles.append(os.path.join(root, filename))
+    else:
+        inputfiles = args.inputfile
+
     if args.transcribe:
         try:
             devnull = open(os.devnull)
@@ -221,22 +229,14 @@ if __name__ == '__main__':
                 print 'Error: Please install pocketsphinx to transcribe files.'
                 sys.exit()
 
-        inputfiles = []
-        if args.recur:
-            for root, dirname, filenames in os.walk(str(args.inputfile[0])):
-                for filename in fnmatch.filter(filenames, '*.mp3'):
-                    inputfiles.append(os.path.join(root, filename))
-        else:
-            inputfiles = args.inputfile
-
         files = convert_to_wav(inputfiles)
         transcribe(files)
 
     if args.search:
         if args.outputmode == 'franken':
-            segments = franken_sentence(args.search, args.inputfile)
+            segments = franken_sentence(args.search, inputfiles)
         else:
-            segments = search(args.search, args.inputfile, mode=args.outputmode, regex=args.regex)
+            segments = search(args.search, inputfiles, mode=args.outputmode, regex=args.regex)
 
         if len(segments) == 0:
             print 'No results for "' + args.search + '"'
