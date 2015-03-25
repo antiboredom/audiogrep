@@ -226,7 +226,6 @@ if __name__ == '__main__':
             for root, dirname, filenames in os.walk(str(args.inputfile[0])):
                 for filename in fnmatch.filter(filenames, '*.mp3'):
                     inputfiles.append(os.path.join(root, filename))
-                    print(inputfiles)
         else:
             inputfiles = args.inputfile
 
