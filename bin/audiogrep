@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+
+import audiogrep
+
+if __name__ == '__main__':
+    audiogrep.main()

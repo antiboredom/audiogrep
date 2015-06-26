@@ -21,7 +21,9 @@ def convert_to_wav(files):
     converted = []
     for f in files:
         new_name = f + '.temp.wav'
-        subprocess.call(['ffmpeg', '-i', f, '-acodec', 'pcm_s16le', '-ac', '1', '-ar', '16000', new_name])
+        print new_name 
+        if (os.path.exists(f + '.transcription.txt') is False) and (os.path.exists(new_name) is False):
+            subprocess.call(['ffmpeg', '-y', '-i', f, '-acodec', 'pcm_s16le', '-ac', '1', '-ar', '16000', new_name])
         converted.append(new_name)
     return converted
 
@@ -32,14 +34,32 @@ def transcribe(files=[], pre=10, post=50):
     total = len(files)
 
     for i, f in enumerate(files):
-        print str(i+1) + '/' + str(total) + ' Transcribing ' + f
         filename = f.replace('.temp.wav', '') + '.transcription.txt'
-        transcript = subprocess.check_output(['pocketsphinx_continuous', '-infile', f, '-time', 'yes', '-logfn', '/dev/null', '-vad_prespeech', str(pre), '-vad_postspeech', str(post)])
 
-        with open(filename, 'w') as outfile:
-            outfile.write(transcript)
+        if os.path.exists(filename) is False:
+            print str(i+1) + '/' + str(total) + ' Transcribing ' + f
+            transcript = subprocess.check_output(['pocketsphinx_continuous', '-infile', f, '-time', 'yes', '-logfn', '/dev/null', '-vad_prespeech', str(pre), '-vad_postspeech', str(post)])
 
-        os.remove(f)
+            with open(filename, 'w') as outfile:
+                outfile.write(transcript)
+
+            os.remove(f)
+
+
+def words_json(sentences):
+    import json
+    out = []
+    for s in sentences:
+        for word in s['words']:
+            try:
+                start = float(word[1])
+                end = float(word[2])
+                confidence = float(word[3])
+                out.append({'start': start, 'end': end, 'word': word[0]})
+            except:
+                continue
+    return json.dumps(out)
+    
 
 
 def convert_timestamps(files):
@@ -51,6 +71,9 @@ def convert_timestamps(files):
 
         if not f.endswith('.transcription.txt'):
             f = f + '.transcription.txt'
+
+        if os.path.exists(f) is False:
+            continue
 
         with open(f, 'r') as infile:
             lines = infile.readlines()
@@ -99,46 +122,136 @@ def search(query, files, mode='sentence', regex=False):
     out = []
     sentences = convert_timestamps(files)
 
+    if mode == 'fragment':
+        out = fragment_search(query, sentences, regex)
+    elif mode == 'word':
+        out = word_search(query, sentences, regex)
+    elif mode == 'franken':
+        out = franken_sentence(query, files)
+    else:
+        out = sentence_search(query, sentences, regex)
+
+
+    return out
+
+def fragment_search(query, sentences, regex):
+
+    def check_pattern(pattern, test):
+        if len(test) != len(pattern):
+            return False
+
+        found = True
+        for p, t in zip(pattern, test):
+            if (p != t and p != '*') or t == "[NOISE]":
+                found = False
+        return found
+
+
+    query = query.split('|')
+    query = [phrase.split(' ') for phrase in query]
+    words = []
     for s in sentences:
-        if mode == 'sentence':
-            words = [w[0] for w in s['words']]
+        for w in s['words']:
+            w.append(s['file'])
+            words.append(w)
+
+    segments = []
+
+    for i in range(0, len(words)):
+        for pattern in query:
+            tester = [w[0] for w in words[i: i+len(pattern)]]
+            if check_pattern(pattern, tester):
+                try:
+                    st = float(words[i][1])
+                    en = float(words[i+len(pattern)-1][2])
+                    if words[i][-1] == words[i+len(pattern)-1][-1] and en-st < 5:
+                        filename = words[i][-1]#.replace('.transcription.txt', '')
+                        item = {'file': filename, 'start': st, 'end': en, 'words': tester}
+                        if not any(s['start'] == st and s['end'] == en for s in segments):
+                            segments.append(item)
+                except:
+                    print 'failed', words[i]
+                    continue
+    return segments
+    
+
+def word_search(query, sentences, regex):
+    out = []
+    for s in sentences:
+        for word in s['words']:
             found = False
             if regex:
-                found = re.search(query, ' '.join(words))
+                found = re.search(query, word[0])
             else:
-                if query.lower() in words:
+                if query.lower() == word[0]:
                     found = True
             if found:
-                out.append(s)
-        elif mode == 'word':
-            for word in s['words']:
-                found = False
-                if regex:
-                    found = re.search(query, word[0])
-                else:
-                    if query.lower() == word[0]:
-                        found = True
-                if found:
-                    try:
-                        start = float(word[1])
-                        end = float(word[2])
-                        confidence = float(word[3])
-                        out.append({'start': start, 'end': end, 'file': s['file'], 'words': word[0], 'confidence': confidence})
-                    except:
-                        continue
+                try:
+                    start = float(word[1])
+                    end = float(word[2])
+                    confidence = float(word[3])
+                    out.append({'start': start, 'end': end, 'file': s['file'], 'words': word[0], 'confidence': confidence})
+                except:
+                    continue
+    return out
+    
 
+def sentence_search(query, sentences, regex):
+    out = []
+    for s in sentences:
+        words = [w[0] for w in s['words']]
+        found = False
+        if regex:
+            found = re.search(query, ' '.join(words))
+        else:
+            if query.lower() in words:
+                found = True
+        if found:
+            out.append(s)
     return out
 
 
 def franken_sentence(sentence, files):
+    w_results = {}
     out = []
     for word in sentence.split(' '):
-        results = search(word, files, mode='word')
+        if word in w_results:
+            results = w_results[word]
+        else:
+            results = search(word, files, mode='word')
+            w_results[word] = results
         if len(results) > 0:
             #sorted(results, key=lambda k: k['confidence'])
             #out = out + [results[0]]
             out = out + [random.choice(results)]
 
+    return out
+
+
+def silences(files, min_duration=None, max_duration=None):
+    out = []
+    for f in files:
+        if not f.endswith('.transcription.txt'):
+            f = f + '.transcription.txt'
+
+        with open(f, 'r') as infile:
+            lines = infile.readlines()
+
+        for line in lines:
+            if line.startswith('<sil>'):
+                word, start, end, conf = line.split(' ')
+                seg = {
+                    'start': float(start),
+                    'end': float(end),
+                    'word': '<SILENCE>',
+                    'file': f
+                }
+                duration = seg['end'] - seg['start']
+                if min_duration and duration < min_duration:
+                    continue
+                if max_duration and duration > max_duration:
+                    continue
+                out.append(seg)
     return out
 
 
@@ -190,8 +303,7 @@ def compose(segments, out='out.mp3', padding=0, crossfade=0, layer=False):
     return working_segments
 
 
-if __name__ == '__main__':
-
+def main():
     parser = argparse.ArgumentParser(description='Audiogrep: splice together audio based on search phrases')
 
     parser.add_argument('--input', '-i', dest='inputfile', required=True, nargs='*', help='Source files to search through')
@@ -204,10 +316,11 @@ if __name__ == '__main__':
     parser.add_argument('--crossfade', '-c', dest='crossfade', type=int, default=0, help='Crossfade between clips')
     parser.add_argument('--demo', '-d', dest='demo', action='store_true', help='Just display the search results without actually making the file')
     parser.add_argument('--layer', '-l', dest='layer', action='store_true', help='Overlay the audio segments')
+    parser.add_argument('--json', '-j', dest='json', action='store_true', help='Output words to json')
 
     args = parser.parse_args()
 
-    if not args.search and not args.transcribe:
+    if not args.search and not args.transcribe and not args.json:
         parser.error('Please transcribe files [--transcribe] or search [--search SEARCH] already transcribed files')
 
     if args.transcribe:
@@ -220,8 +333,11 @@ if __name__ == '__main__':
                 sys.exit()
         files = convert_to_wav(args.inputfile)
         transcribe(files)
+    elif args.json:
+        sentences = convert_timestamps(args.inputfile)
+        print words_json(sentences)
 
-    if args.search:
+    elif args.search:
         if args.outputmode == 'franken':
             segments = franken_sentence(args.search, args.inputfile)
         else:
@@ -240,3 +356,6 @@ if __name__ == '__main__':
                     print s['words']
         else:
             compose(segments, out=args.outputfile, padding=args.padding, crossfade=args.crossfade, layer=args.layer)
+
+if __name__ == '__main__':
+    main()
