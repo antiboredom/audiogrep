@@ -6,13 +6,9 @@ Audiogrep transcribes audio files and then creates "audio supercuts" based on se
 Here's some [sample output](http://lav.io/2015/02/audiogrep-automatic-audio-supercuts/).
 
 ##Requirements
-Clone this repository
+Install using pip
 ```
-git clone https://github.com/antiboredom/audiogrep.git
-```
-Install the python requirements.
-```
-pip install -r requirements.txt
+pip install audiogrep
 ```
 Install [ffmpeg](http://ffmpeg.org/) with Ogg/Vorbis support. If you're on a mac with [homebrew](http://brew.sh/) you can install ffmpeg with:
 ```
@@ -31,26 +27,26 @@ brew install --HEAD watsonbox/cmu-sphinx/cmu-pocketsphinx
 First, transcribe the audio (you'll only need to do this once per audio track, but it can take some time)
 ```
 # transcribes all mp3s in the selected folder
-python audiogrep.py --input path/to/*.mp3 --transcribe
+audiogrep --input path/to/*.mp3 --transcribe
 ```
 Then, basic use:
 ```
 # returns all phrases with the word 'word' in them
-python audiogrep.py --input path/to/*.mp3 --search 'word'
+audiogrep --input path/to/*.mp3 --search 'word'
 ```
 The previous example will extract phrase chunks containing the search term, but you can also just get individual words:
 ```
-python audiogrep.py --input path/to/*.mp3 --search 'word' --output-mode word
+audiogrep --input path/to/*.mp3 --search 'word' --output-mode word
 ```
 If you add the '--regex' flag you can use regular expressions. For example:
 ```
 # creates a supercut of every instance of the words "spectre", "haunting" and "europe"
-python audiogrep.py --input path/to/*.mp3 --search 'spectre|haunting|europe' --output-mode word
+audiogrep --input path/to/*.mp3 --search 'spectre|haunting|europe' --output-mode word
 ```
 You can also construct 'frankenstein' sentences (mileage may vary):
 ```
 # stupid joke
-python audiogrep.py --input path/to/*.mp3 --search 'my voice is my passport' --output-mode franken
+audiogrep --input path/to/*.mp3 --search 'my voice is my passport' --output-mode franken
 ```
 
 ###Options
@@ -67,10 +63,11 @@ Name of the file to generate. By default this is "supercut.mp3"
 Search term
 
 ####--output-mode / -m
-Splice together phrases, single words, or "frankenstein" sentences.
+Splice together phrases, single words, fragments with wildcards, or "frankenstein" sentences.
 Options are:
 * sentence: (this is the default)
 * word
+* fragment
 * franken
 
 ####--padding / -p
