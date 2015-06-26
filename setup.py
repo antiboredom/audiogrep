@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='audiogrep',
-    version='0.1.0',
+    version='0.1.1',
     author='Sam Lavigne',
     author_email='splavigne@gmail.com',
     packages=['audiogrep'],
