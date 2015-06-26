@@ -38,9 +38,9 @@
 <h2>
 <a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Requirements</h2>
 
-<p>Clone this repository, and then install the other requirements.</p>
+<p>Install via pip:</p>
 
-<pre><code>pip install -r requirements.txt
+<pre><code>pip install audiogrep
 </code></pre>
 
 <p>Install <a href="http://ffmpeg.org/">ffmpeg</a> with Ogg/Vorbis support. If you're on a mac with <a href="http://brew.sh/">homebrew</a> you can install ffmpeg with:</p>
@@ -63,30 +63,30 @@ brew install --HEAD watsonbox/cmu-sphinx/cmu-pocketsphinx
 <p>First, transcribe the audio (you'll only need to do this once per audio track, but it can take some time)</p>
 
 <pre><code># transcribes all mp3s in the selected folder
-python audiogrep.py --input path/to/*.mp3 --transcribe
+audiogrep --input path/to/*.mp3 --transcribe
 </code></pre>
 
 <p>Then, basic use:</p>
 
 <pre><code># returns all phrases with the word 'word' in them
-python audiogrep.py --input path/to/*.mp3 --search 'word'
+audiogrep --input path/to/*.mp3 --search 'word'
 </code></pre>
 
 <p>The previous example will extract phrase chunks containing the search term, but you can also just get individual words:</p>
 
-<pre><code>python audiogrep.py --input path/to/*.mp3 --search 'word' --output-mode word
+<pre><code>audiogrep --input path/to/*.mp3 --search 'word' --output-mode word
 </code></pre>
 
 <p>If you add the '--regex' flag you can use regular expressions. For example:</p>
 
 <pre><code># creates a supercut of every instance of the words "spectre", "haunting" and "europe"
-python audiogrep.py --input path/to/*.mp3 --search 'spectre|haunting|europe' --output-mode word
+audiogrep --input path/to/*.mp3 --search 'spectre|haunting|europe' --output-mode word
 </code></pre>
 
 <p>You can also construct 'frankenstein' sentences (mileage may vary):</p>
 
 <pre><code># stupid joke
-python audiogrep.py --input path/to/*.mp3 --search 'my voice is my passport' --output-mode franken
+audiogrep --input path/to/*.mp3 --search 'my voice is my passport' --output-mode franken
 </code></pre>
 
 <h3>
