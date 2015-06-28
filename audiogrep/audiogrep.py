@@ -134,6 +134,20 @@ def search(query, files, mode='sentence', regex=False):
 
     return out
 
+def extract_words(files):
+    sentences = convert_timestamps(files)
+    out = []
+    for s in sentences:
+        for word in s['words']:
+            print word
+            try:
+                start = float(word[1])
+                end = float(word[2])
+                confidence = float(word[3])
+                out.append({'start': start, 'end': end, 'file': s['file'], 'words': word[0], 'confidence': confidence})
+            except:
+                pass
+
 def fragment_search(query, sentences, regex):
 
     def check_pattern(pattern, test):
@@ -309,6 +323,7 @@ def main():
     parser.add_argument('--input', '-i', dest='inputfile', required=True, nargs='*', help='Source files to search through')
     parser.add_argument('--search', '-s', dest='search', help='Search term - to use a regular expression, use the -re flag')
     parser.add_argument('--regex', '-re', dest='regex', help='Use a regular expression for search', action='store_true')
+    parser.add_argument('--extract', '-x', dest='extract', help='Extract all individual words from an audio file and write them to disk.', action='store_true')
     parser.add_argument('--output-mode', '-m', dest='outputmode', default='sentence', choices=['sentence', 'word', 'franken'], help='Splice together phrases, or single words, or "frankenstein" sentences')
     parser.add_argument('--output', '-o', dest='outputfile', default='supercut.mp3', help='Name of output file')
     parser.add_argument('--transcribe', '-t', dest='transcribe', action='store_true', help='Transcribe audio files')
@@ -320,7 +335,7 @@ def main():
 
     args = parser.parse_args()
 
-    if not args.search and not args.transcribe and not args.json:
+    if not args.search and not args.transcribe and not args.json and not args.extract:
         parser.error('Please transcribe files [--transcribe] or search [--search SEARCH] already transcribed files')
 
     if args.transcribe:
@@ -356,6 +371,8 @@ def main():
                     print s['words']
         else:
             compose(segments, out=args.outputfile, padding=args.padding, crossfade=args.crossfade, layer=args.layer)
+    elif args.extract:
+        extract_words(args.inputfile)
 
 if __name__ == '__main__':
     main()
