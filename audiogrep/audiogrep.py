@@ -137,44 +137,45 @@ def search(query, files, mode='sentence', regex=False):
 
 def extract_words(files):
     ''' Extracts individual words form files and exports them to individual files. '''
-    file = files[0]
-    file_format = None
-    source_segment = None
-    if file.lower().endswith('.mp3'):
-        file_format = 'mp3'
-        source_segment = AudioSegment.from_mp3(files[0])
-    elif file.lower().endswith('.wav'):
-        file_format = 'wav'
-        source_segment = AudioSegment.from_wav(files[0])
-    if not file_format or source_segment:
-        print 'Unsupported audio format for ' + file
-    sentences = convert_timestamps(files)
     output_directory = 'extracted_words'
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
-    for s in sentences:
-        for word in s['words']:
-            start = float(word[1]) * 1000
-            end = float(word[2]) * 1000
-            word = word[0]
-            total_time = end - start
-            audio = AudioSegment.silent(duration=total_time)
-            audio = audio.overlay(source_segment[start:end])
-            number = 0
-            output_path = None
-            while True:
-                output_filename = word
-                if number:
-                    output_filename += "_" + str(number)
-                output_filename = output_filename + '.' + file_format
-                output_path = os.path.join(output_directory, output_filename)
-                if not os.path.exists(output_path):
-                    # this file doesn't exist, so we can continue
-                    break
-                # file already exists, increment name and try again
-                number += 1
-            print 'Exporting to: ' + output_path
-            audio.export(output_path, format=file_format)
+
+    for f in files:
+        file_format = None
+        source_segment = None
+        if f.lower().endswith('.mp3'):
+            file_format = 'mp3'
+            source_segment = AudioSegment.from_mp3(f)
+        elif f.lower().endswith('.wav'):
+            file_format = 'wav'
+            source_segment = AudioSegment.from_wav(f)
+        if not file_format or source_segment:
+            print 'Unsupported audio format for ' + f
+        sentences = convert_timestamps(files)
+        for s in sentences:
+            for word in s['words']:
+                start = float(word[1]) * 1000
+                end = float(word[2]) * 1000
+                word = word[0]
+                total_time = end - start
+                audio = AudioSegment.silent(duration=total_time)
+                audio = audio.overlay(source_segment[start:end])
+                number = 0
+                output_path = None
+                while True:
+                    output_filename = word
+                    if number:
+                        output_filename += "_" + str(number)
+                    output_filename = output_filename + '.' + file_format
+                    output_path = os.path.join(output_directory, output_filename)
+                    if not os.path.exists(output_path):
+                        # this file doesn't exist, so we can continue
+                        break
+                    # file already exists, increment name and try again
+                    number += 1
+                print 'Exporting to: ' + output_path
+                audio.export(output_path, format=file_format)
 
 
 def fragment_search(query, sentences, regex):
