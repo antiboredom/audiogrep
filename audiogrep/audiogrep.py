@@ -165,7 +165,7 @@ def fragment_search(query, sentences, regex):
                     st = float(words[i][1])
                     en = float(words[i+len(pattern)-1][2])
                     if words[i][-1] == words[i+len(pattern)-1][-1] and en-st < 5:
-                        filename = words[i][-1]#.replace('.transcription.txt', '')
+                        filename = words[i][-1]
                         item = {'file': filename, 'start': st, 'end': en, 'words': tester}
                         if not any(s['start'] == st and s['end'] == en for s in segments):
                             segments.append(item)
@@ -173,7 +173,17 @@ def fragment_search(query, sentences, regex):
                     print 'failed', words[i]
                     continue
     return segments
-    
+
+
+def words(sentences):
+    out = []
+    for s in sentences:
+        for word in s['words']:
+            start = float(word[1])
+            end = float(word[2])
+            out.append({'start': start, 'end': end, 'file': s['file'], 'word': word[0]})
+    return out
+
 
 def word_search(query, sentences, regex):
     out = []
