@@ -48,7 +48,7 @@ You can also construct 'frankenstein' sentences (mileage may vary):
 # stupid joke
 audiogrep --input path/to/*.mp3 --search 'my voice is my passport' --output-mode franken
 ```
-Or you can just extract individual words into files. (word.mp3, etc.)
+Or you can just extract individual words into files.
 ```
 # extracts each individual word into its own file in a directory called 'extracted_words'
 audiogrep --input path/to/*.mp3 --extract
