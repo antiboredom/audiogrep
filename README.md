@@ -48,6 +48,17 @@ You can also construct 'frankenstein' sentences (mileage may vary):
 # stupid joke
 audiogrep --input path/to/*.mp3 --search 'my voice is my passport' --output-mode franken
 ```
+Or you can just extract individual words into files.
+```
+# extracts each individual word into its own file in a directory called 'extracted_words'
+audiogrep --input path/to/*.mp3 --extract
+
+Exporting to: extracted_words/i.mp3
+Exporting to: extracted_words/am.mp3
+Exporting to: extracted_words/the.mp3
+Exporting to: extracted_words/key.mp3
+Exporting to: extracted_words/master.mp3
+```
 
 ###Options
 
@@ -75,6 +86,8 @@ Time in milliseconds to add between audio segments. Default is 0.
 
 ####--crossfade / -c
 Time in milliseconds to crossfade audio segments. Default is 0.
+
+####--extract / -x
 
 ####--demo / -d
 Show the results of the search without outputing a file

@@ -134,6 +134,50 @@ def search(query, files, mode='sentence', regex=False):
 
     return out
 
+
+def extract_words(files):
+    ''' Extracts individual words form files and exports them to individual files. '''
+    output_directory = 'extracted_words'
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+
+    for f in files:
+        file_format = None
+        source_segment = None
+        if f.lower().endswith('.mp3'):
+            file_format = 'mp3'
+            source_segment = AudioSegment.from_mp3(f)
+        elif f.lower().endswith('.wav'):
+            file_format = 'wav'
+            source_segment = AudioSegment.from_wav(f)
+        if not file_format or source_segment:
+            print 'Unsupported audio format for ' + f
+        sentences = convert_timestamps(files)
+        for s in sentences:
+            for word in s['words']:
+                start = float(word[1]) * 1000
+                end = float(word[2]) * 1000
+                word = word[0]
+                total_time = end - start
+                audio = AudioSegment.silent(duration=total_time)
+                audio = audio.overlay(source_segment[start:end])
+                number = 0
+                output_path = None
+                while True:
+                    output_filename = word
+                    if number:
+                        output_filename += "_" + str(number)
+                    output_filename = output_filename + '.' + file_format
+                    output_path = os.path.join(output_directory, output_filename)
+                    if not os.path.exists(output_path):
+                        # this file doesn't exist, so we can continue
+                        break
+                    # file already exists, increment name and try again
+                    number += 1
+                print 'Exporting to: ' + output_path
+                audio.export(output_path, format=file_format)
+
+
 def fragment_search(query, sentences, regex):
 
     def check_pattern(pattern, test):
@@ -322,6 +366,7 @@ def main():
     parser.add_argument('--output-mode', '-m', dest='outputmode', default='sentence', choices=['sentence', 'word', 'franken'], help='Splice together phrases, or single words, or "frankenstein" sentences')
     parser.add_argument('--output', '-o', dest='outputfile', default='supercut.mp3', help='Name of output file')
     parser.add_argument('--transcribe', '-t', dest='transcribe', action='store_true', help='Transcribe audio files')
+    parser.add_argument('--extract', '-x', dest='extract', help='Extract all individual words from an audio file and write them to disk.', action='store_true')
     parser.add_argument('--padding', '-p', dest='padding', type=int, help='Milliseconds of padding between the audio segments')
     parser.add_argument('--crossfade', '-c', dest='crossfade', type=int, default=0, help='Crossfade between clips')
     parser.add_argument('--demo', '-d', dest='demo', action='store_true', help='Just display the search results without actually making the file')
@@ -330,7 +375,7 @@ def main():
 
     args = parser.parse_args()
 
-    if not args.search and not args.transcribe and not args.json:
+    if not args.search and not args.transcribe and not args.json and not args.extract:
         parser.error('Please transcribe files [--transcribe] or search [--search SEARCH] already transcribed files')
 
     if args.transcribe:
@@ -366,6 +411,8 @@ def main():
                     print s['words']
         else:
             compose(segments, out=args.outputfile, padding=args.padding, crossfade=args.crossfade, layer=args.layer)
+    elif args.extract:
+        extract_words(args.inputfile)
 
 if __name__ == '__main__':
     main()
