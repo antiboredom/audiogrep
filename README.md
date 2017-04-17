@@ -5,7 +5,7 @@ Audiogrep transcribes audio files and then creates "audio supercuts" based on se
 
 Here's some [sample output](http://lav.io/2015/02/audiogrep-automatic-audio-supercuts/).
 
-##Requirements
+## Requirements
 Install using pip
 ```
 pip install audiogrep
@@ -23,7 +23,7 @@ brew install --HEAD watsonbox/cmu-sphinx/cmu-sphinxtrain # optional
 brew install --HEAD watsonbox/cmu-sphinx/cmu-pocketsphinx
 ```
 
-##How to use it
+## How to use it
 First, transcribe the audio (you'll only need to do this once per audio track, but it can take some time)
 ```
 # transcribes all mp3s in the selected folder
@@ -60,20 +60,20 @@ Exporting to: extracted_words/key.mp3
 Exporting to: extracted_words/master.mp3
 ```
 
-###Options
+### Options
 
 audiogrep can take a number of options:
 
-####--input / -i
+#### --input / -i
 mp3 file or pattern for input
 
-####--output / -o
+#### --output / -o
 Name of the file to generate. By default this is "supercut.mp3"
 
-####--search / -s
+#### --search / -s
 Search term
 
-####--output-mode / -m
+#### --output-mode / -m
 Splice together phrases, single words, fragments with wildcards, or "frankenstein" sentences.
 Options are:
 * sentence: (this is the default)
@@ -81,13 +81,13 @@ Options are:
 * fragment
 * franken
 
-####--padding / -p
+#### --padding / -p
 Time in milliseconds to add between audio segments. Default is 0.
 
-####--crossfade / -c
+#### --crossfade / -c
 Time in milliseconds to crossfade audio segments. Default is 0.
 
-####--extract / -x
+#### --extract / -x
 
-####--demo / -d
+#### --demo / -d
 Show the results of the search without outputing a file
