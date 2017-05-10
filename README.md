@@ -41,7 +41,7 @@ audiogrep --input path/to/*.mp3 --search 'word' --output-mode word
 If you add the '--regex' flag you can use regular expressions. For example:
 ```
 # creates a supercut of every instance of the words "spectre", "haunting" and "europe"
-audiogrep --input path/to/*.mp3 --search 'spectre|haunting|europe' --output-mode word
+audiogrep --input path/to/*.mp3 --search 'spectre|haunting|europe' --output-mode word --regex
 ```
 You can also construct 'frankenstein' sentences (mileage may vary):
 ```
