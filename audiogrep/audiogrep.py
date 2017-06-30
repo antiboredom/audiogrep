@@ -29,7 +29,7 @@ def convert_to_wav(files):
     return converted
 
 
-def transcribe(files=[], pre=10, post=50):
+def transcribe(files=[], pre=10, post=50, debug=False):
     '''Uses pocketsphinx to transcribe audio files'''
 
     total = len(files)
@@ -39,7 +39,14 @@ def transcribe(files=[], pre=10, post=50):
 
         if exists(filename) is False:
             print(str(i+1) + '/' + str(total) + ' Transcribing ' + f)
-            transcript = check_output(['pocketsphinx_continuous', '-infile', f, '-time', 'yes', '-logfn', '/dev/null', '-vad_prespeech', str(pre), '-vad_postspeech', str(post)])
+
+            cmd = ['/usr/local/bin/pocketsphinx_continuous', '-infile', f, '-time', 'yes', \
+                '-vad_prespeech', str(pre), '-vad_postspeech', str(post)]
+
+            if not debug:
+                transcript = check_output(cmd + ['-logfn', '/dev/null'])
+            else:
+                transcript = check_output(cmd)
 
             with open(filename, 'wb') as outfile:
                 outfile.write(transcript)
@@ -373,6 +380,7 @@ def main():
     parser.add_argument('--demo', '-d', dest='demo', action='store_true', help='Just display the search results without actually making the file')
     parser.add_argument('--layer', '-l', dest='layer', action='store_true', help='Overlay the audio segments')
     parser.add_argument('--json', '-j', dest='json', action='store_true', help='Output words to json')
+    parser.add_argument('--debug', '-de', dest='debug', action='store_true', help='Extended debug.')
 
     args = parser.parse_args()
 
@@ -388,7 +396,10 @@ def main():
                 print('Error: Please install pocketsphinx to transcribe files.')
                 sys.exit()
         files = convert_to_wav(args.inputfile)
-        transcribe(files)
+        if args.debug:
+            transcribe(files, debug=True)
+        else:
+            transcribe(files)
     elif args.json:
         sentences = convert_timestamps(args.inputfile)
         print(words_json(sentences))
