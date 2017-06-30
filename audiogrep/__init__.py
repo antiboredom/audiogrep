@@ -1,1 +1,1 @@
-from audiogrep import *
+from .audiogrep import *

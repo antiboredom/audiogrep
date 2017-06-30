@@ -4,3 +4,8 @@ env/
 *.egg-info
 build/
 dist/
+*.bak
+*.mp3
+*.transcription.txt
+*.mp4
+*.mkv

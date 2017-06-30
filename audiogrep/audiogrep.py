@@ -8,11 +8,12 @@
 # $ brew install --HEAD watsonbox/cmu-sphinx/cmu-pocketsphinx
 
 import sys
-import os
-import subprocess
-import argparse
-import re
-import random
+from os import remove, makedirs, errno, devnull
+from os.path import exists, join, splitext
+from subprocess import call, check_output, Popen
+from argparse import ArgumentParser
+from re import sub, search
+from random import choice
 from pydub import AudioSegment
 
 
@@ -21,14 +22,14 @@ def convert_to_wav(files):
     converted = []
     for f in files:
         new_name = f + '.temp.wav'
-        print new_name 
-        if (os.path.exists(f + '.transcription.txt') is False) and (os.path.exists(new_name) is False):
-            subprocess.call(['ffmpeg', '-y', '-i', f, '-acodec', 'pcm_s16le', '-ac', '1', '-ar', '16000', new_name])
+        print(new_name)
+        if (exists(f + '.transcription.txt') is False) and (exists(new_name) is False):
+            call(['ffmpeg', '-y', '-i', f, '-acodec', 'pcm_s16le', '-ac', '1', '-ar', '16000', new_name])
         converted.append(new_name)
     return converted
 
 
-def transcribe(files=[], pre=10, post=50):
+def transcribe(files=[], pre=10, post=50, debug=False):
     '''Uses pocketsphinx to transcribe audio files'''
 
     total = len(files)
@@ -36,14 +37,21 @@ def transcribe(files=[], pre=10, post=50):
     for i, f in enumerate(files):
         filename = f.replace('.temp.wav', '') + '.transcription.txt'
 
-        if os.path.exists(filename) is False:
-            print str(i+1) + '/' + str(total) + ' Transcribing ' + f
-            transcript = subprocess.check_output(['pocketsphinx_continuous', '-infile', f, '-time', 'yes', '-logfn', '/dev/null', '-vad_prespeech', str(pre), '-vad_postspeech', str(post)])
+        if exists(filename) is False:
+            print(str(i+1) + '/' + str(total) + ' Transcribing ' + f)
 
-            with open(filename, 'w') as outfile:
+            cmd = ['/usr/local/bin/pocketsphinx_continuous', '-infile', f, '-time', 'yes', \
+                '-vad_prespeech', str(pre), '-vad_postspeech', str(post)]
+
+            if not debug:
+                transcript = check_output(cmd + ['-logfn', '/dev/null'])
+            else:
+                transcript = check_output(cmd)
+
+            with open(filename, 'wb') as outfile:
                 outfile.write(transcript)
 
-            os.remove(f)
+            remove(f)
 
 
 def words_json(sentences):
@@ -59,7 +67,7 @@ def words_json(sentences):
             except:
                 continue
     return json.dumps(out)
-    
+
 
 
 def convert_timestamps(files):
@@ -72,13 +80,13 @@ def convert_timestamps(files):
         if not f.endswith('.transcription.txt'):
             f = f + '.transcription.txt'
 
-        if os.path.exists(f) is False:
+        if exists(f) is False:
             continue
 
         with open(f, 'r') as infile:
             lines = infile.readlines()
 
-        lines = [re.sub(r'\(.*?\)', '', l).strip().split(' ') for l in lines]
+        lines = [sub(r'\(.*?\)', '', l).strip().split(' ') for l in lines]
         lines = [l for l in lines if len(l) == 4]
 
         seg_start = -1
@@ -138,8 +146,8 @@ def search(query, files, mode='sentence', regex=False):
 def extract_words(files):
     ''' Extracts individual words form files and exports them to individual files. '''
     output_directory = 'extracted_words'
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
+    if not exists(output_directory):
+        makedirs(output_directory)
 
     for f in files:
         file_format = None
@@ -151,7 +159,7 @@ def extract_words(files):
             file_format = 'wav'
             source_segment = AudioSegment.from_wav(f)
         if not file_format or source_segment:
-            print 'Unsupported audio format for ' + f
+            print('Unsupported audio format for ' + f)
         sentences = convert_timestamps(files)
         for s in sentences:
             for word in s['words']:
@@ -168,13 +176,13 @@ def extract_words(files):
                     if number:
                         output_filename += "_" + str(number)
                     output_filename = output_filename + '.' + file_format
-                    output_path = os.path.join(output_directory, output_filename)
-                    if not os.path.exists(output_path):
+                    output_path = join(output_directory, output_filename)
+                    if not exists(output_path):
                         # this file doesn't exist, so we can continue
                         break
                     # file already exists, increment name and try again
                     number += 1
-                print 'Exporting to: ' + output_path
+                print('Exporting to: ' + output_path)
                 audio.export(output_path, format=file_format)
 
 
@@ -214,7 +222,7 @@ def fragment_search(query, sentences, regex):
                         if not any(s['start'] == st and s['end'] == en for s in segments):
                             segments.append(item)
                 except:
-                    print 'failed', words[i]
+                    print('failed', words[i])
                     continue
     return segments
 
@@ -235,7 +243,7 @@ def word_search(query, sentences, regex):
         for word in s['words']:
             found = False
             if regex:
-                found = re.search(query, word[0])
+                found = search(query, word[0])
             else:
                 if query.lower() == word[0]:
                     found = True
@@ -248,7 +256,7 @@ def word_search(query, sentences, regex):
                 except:
                     continue
     return out
-    
+
 
 def sentence_search(query, sentences, regex):
     out = []
@@ -256,7 +264,7 @@ def sentence_search(query, sentences, regex):
         words = [w[0] for w in s['words']]
         found = False
         if regex:
-            found = re.search(query, ' '.join(words))
+            found = search(query, ' '.join(words))
         else:
             if query.lower() in words:
                 found = True
@@ -277,7 +285,7 @@ def franken_sentence(sentence, files):
         if len(results) > 0:
             #sorted(results, key=lambda k: k['confidence'])
             #out = out + [results[0]]
-            out = out + [random.choice(results)]
+            out = out + [choice(results)]
 
     return out
 
@@ -335,7 +343,7 @@ def compose(segments, out='out.mp3', padding=0, crossfade=0, layer=False):
 
             segment = files[f][start:end]
 
-            print start, end, f
+            print(start, end, f)
 
             if layer:
                 audio = audio.overlay(segment, times=1)
@@ -353,12 +361,12 @@ def compose(segments, out='out.mp3', padding=0, crossfade=0, layer=False):
         except:
             continue
 
-    audio.export(out, format=os.path.splitext(out)[1].replace('.', ''))
+    audio.export(out, format=splitext(out)[1].replace('.', ''))
     return working_segments
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Audiogrep: splice together audio based on search phrases')
+    parser = ArgumentParser(description='Audiogrep: splice together audio based on search phrases')
 
     parser.add_argument('--input', '-i', dest='inputfile', required=True, nargs='*', help='Source files to search through')
     parser.add_argument('--search', '-s', dest='search', help='Search term - to use a regular expression, use the -re flag')
@@ -372,6 +380,7 @@ def main():
     parser.add_argument('--demo', '-d', dest='demo', action='store_true', help='Just display the search results without actually making the file')
     parser.add_argument('--layer', '-l', dest='layer', action='store_true', help='Overlay the audio segments')
     parser.add_argument('--json', '-j', dest='json', action='store_true', help='Output words to json')
+    parser.add_argument('--debug', '-de', dest='debug', action='store_true', help='Extended debug.')
 
     args = parser.parse_args()
 
@@ -380,17 +389,20 @@ def main():
 
     if args.transcribe:
         try:
-            devnull = open(os.devnull)
-            subprocess.Popen(['pocketsphinx_continuous', '--invalid-args'], stdout=devnull, stderr=devnull).communicate()
+            dev_null = open(devnull)
+            Popen(['pocketsphinx_continuous', '--invalid-args'], stdout=dev_null, stderr=dev_null).communicate()
         except OSError as e:
-            if e.errno == os.errno.ENOENT:
-                print 'Error: Please install pocketsphinx to transcribe files.'
+            if e.errno == errno.ENOENT:
+                print('Error: Please install pocketsphinx to transcribe files.')
                 sys.exit()
         files = convert_to_wav(args.inputfile)
-        transcribe(files)
+        if args.debug:
+            transcribe(files, debug=True)
+        else:
+            transcribe(files)
     elif args.json:
         sentences = convert_timestamps(args.inputfile)
-        print words_json(sentences)
+        print(words_json(sentences))
 
     elif args.search:
         if args.outputmode == 'franken':
@@ -399,16 +411,16 @@ def main():
             segments = search(args.search, args.inputfile, mode=args.outputmode, regex=args.regex)
 
         if len(segments) == 0:
-            print 'No results for "' + args.search + '"'
+            print('No results for "' + args.search + '"')
             sys.exit()
 
-        print 'Generating supercut'
+        print('Generating supercut')
         if args.demo:
             for s in segments:
                 if args.outputmode == 'sentence':
-                    print ' '.join([w[0] for w in s['words']])
+                    print(' '.join([w[0] for w in s['words']]))
                 else:
-                    print s['words']
+                    print(s['words'])
         else:
             compose(segments, out=args.outputfile, padding=args.padding, crossfade=args.crossfade, layer=args.layer)
     elif args.extract:

@@ -1,11 +1,11 @@
-import os
+from os.path import join, dirname
 
-import audiogrep
+from audiogrep import convert_timestamps
 
 
 def test_convert_timestamps():
-    filename = os.path.join(os.path.dirname(__file__), 'data/test.mp3')
-    sentences = audiogrep.convert_timestamps([filename])
+    filename = join(dirname(__file__), 'data/test.mp3')
+    sentences = convert_timestamps([filename])
     words = {}
     for sentence in sentences:
         for word in sentence['words']:
