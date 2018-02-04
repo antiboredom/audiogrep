@@ -1,2 +1,1 @@
-pydub==0.9.5
-wsgiref==0.1.2
+pydub==0.20.0
