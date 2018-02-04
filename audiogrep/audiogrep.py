@@ -61,7 +61,7 @@ def words_json(sentences):
             except:
                 continue
     return json.dumps(out)
-    
+
 
 
 def convert_timestamps(files):
@@ -250,7 +250,7 @@ def word_search(query, sentences, regex):
                 except:
                     continue
     return out
-    
+
 
 def sentence_search(query, sentences, regex):
     out = []
