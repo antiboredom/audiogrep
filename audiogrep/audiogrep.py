@@ -7,6 +7,8 @@
 # $ brew install --HEAD watsonbox/cmu-sphinx/cmu-sphinxtrain # optional
 # $ brew install --HEAD watsonbox/cmu-sphinx/cmu-pocketsphinx
 
+from __future__ import print_function
+
 import sys
 import os
 import subprocess
@@ -21,7 +23,7 @@ def convert_to_wav(files):
     converted = []
     for f in files:
         new_name = f + '.temp.wav'
-        print new_name 
+        print(new_name)
         if (os.path.exists(f + '.transcription.txt') is False) and (os.path.exists(new_name) is False):
             subprocess.call(['ffmpeg', '-y', '-i', f, '-acodec', 'pcm_s16le', '-ac', '1', '-ar', '16000', new_name])
         converted.append(new_name)
@@ -37,7 +39,7 @@ def transcribe(files=[], pre=10, post=50):
         filename = f.replace('.temp.wav', '') + '.transcription.txt'
 
         if os.path.exists(filename) is False:
-            print str(i+1) + '/' + str(total) + ' Transcribing ' + f
+            print(str(i+1) + '/' + str(total) + ' Transcribing ' + f)
             transcript = subprocess.check_output(['pocketsphinx_continuous', '-infile', f, '-time', 'yes', '-logfn', '/dev/null', '-vad_prespeech', str(pre), '-vad_postspeech', str(post)])
 
             with open(filename, 'w') as outfile:
@@ -151,7 +153,7 @@ def extract_words(files):
             file_format = 'wav'
             source_segment = AudioSegment.from_wav(f)
         if not file_format or source_segment:
-            print 'Unsupported audio format for ' + f
+            print('Unsupported audio format for ' + f)
         sentences = convert_timestamps(files)
         for s in sentences:
             for word in s['words']:
@@ -174,7 +176,7 @@ def extract_words(files):
                         break
                     # file already exists, increment name and try again
                     number += 1
-                print 'Exporting to: ' + output_path
+                print('Exporting to: ' + output_path)
                 audio.export(output_path, format=file_format)
 
 
@@ -214,7 +216,7 @@ def fragment_search(query, sentences, regex):
                         if not any(s['start'] == st and s['end'] == en for s in segments):
                             segments.append(item)
                 except:
-                    print 'failed', words[i]
+                    print('failed', words[i])
                     continue
     return segments
 
@@ -335,7 +337,7 @@ def compose(segments, out='out.mp3', padding=0, crossfade=0, layer=False):
 
             segment = files[f][start:end]
 
-            print start, end, f
+            print(start, end, f)
 
             if layer:
                 audio = audio.overlay(segment, times=1)
@@ -384,13 +386,13 @@ def main():
             subprocess.Popen(['pocketsphinx_continuous', '--invalid-args'], stdout=devnull, stderr=devnull).communicate()
         except OSError as e:
             if e.errno == os.errno.ENOENT:
-                print 'Error: Please install pocketsphinx to transcribe files.'
+                print('Error: Please install pocketsphinx to transcribe files.')
                 sys.exit()
         files = convert_to_wav(args.inputfile)
         transcribe(files)
     elif args.json:
         sentences = convert_timestamps(args.inputfile)
-        print words_json(sentences)
+        print(words_json(sentences))
 
     elif args.search:
         if args.outputmode == 'franken':
@@ -399,16 +401,16 @@ def main():
             segments = search(args.search, args.inputfile, mode=args.outputmode, regex=args.regex)
 
         if len(segments) == 0:
-            print 'No results for "' + args.search + '"'
+            print('No results for "' + args.search + '"')
             sys.exit()
 
-        print 'Generating supercut'
+        print('Generating supercut')
         if args.demo:
             for s in segments:
                 if args.outputmode == 'sentence':
-                    print ' '.join([w[0] for w in s['words']])
+                    print(' '.join([w[0] for w in s['words']]))
                 else:
-                    print s['words']
+                    print(s['words'])
         else:
             compose(segments, out=args.outputfile, padding=args.padding, crossfade=args.crossfade, layer=args.layer)
     elif args.extract:
