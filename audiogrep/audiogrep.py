@@ -43,7 +43,7 @@ def transcribe(files=[], pre=10, post=50):
             transcript = subprocess.check_output(['pocketsphinx_continuous', '-infile', f, '-time', 'yes', '-logfn', '/dev/null', '-vad_prespeech', str(pre), '-vad_postspeech', str(post)])
 
             with open(filename, 'w') as outfile:
-                outfile.write(transcript)
+                outfile.write(transcript.decode('utf8'))
 
             os.remove(f)
 
