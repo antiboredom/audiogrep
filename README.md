@@ -91,3 +91,7 @@ Time in milliseconds to crossfade audio segments. Default is 0.
 
 #### --demo / -d
 Show the results of the search without outputing a file
+
+### Troubleshooting
+
+If you receive the error "ERROR: "cmd_ln.c", line 942: Unknown argument: -alignctl", uninstalling and reinstalling cmu-sphinxbase and cmu-pocketsphinx may solve the issue. 
