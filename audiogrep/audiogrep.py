@@ -130,6 +130,8 @@ def search(query, files, mode='sentence', regex=False):
         out = word_search(query, sentences, regex)
     elif mode == 'franken':
         out = franken_sentence(query, files)
+    elif mode == 'mute':
+        out = word_search(query, sentences, regex)
     else:
         out = sentence_search(query, sentences, regex)
 
@@ -231,24 +233,25 @@ def words(sentences):
     return out
 
 
-def word_search(query, sentences, regex):
+def word_search(query_string, sentences, regex):
     out = []
-    for s in sentences:
-        for word in s['words']:
-            found = False
-            if regex:
-                found = re.search(query, word[0])
-            else:
-                if query.lower() == word[0]:
-                    found = True
-            if found:
-                try:
-                    start = float(word[1])
-                    end = float(word[2])
-                    confidence = float(word[3])
-                    out.append({'start': start, 'end': end, 'file': s['file'], 'words': word[0], 'confidence': confidence})
-                except:
-                    continue
+    for query in query_string.split(','):
+        for s in sentences:
+            for word in s['words']:
+                found = False
+                if regex:
+                    found = re.search(query, word[0])
+                else:
+                    if query.lower() == word[0]:
+                        found = True
+                if found:
+                    try:
+                        start = float(word[1])
+                        end = float(word[2])
+                        confidence = float(word[3])
+                        out.append({'start': start, 'end': end, 'file': s['file'], 'words': word[0], 'confidence': confidence})
+                    except:
+                        continue
     return out
 
 
@@ -359,13 +362,36 @@ def compose(segments, out='out.mp3', padding=0, crossfade=0, layer=False):
     return working_segments
 
 
+def mute(segments, inputfile, out='mute.mp3'):
+    '''Mutes the selected segments using ffmpeg'''
+
+    pos = 0
+    complex_filter = ""
+    for segment in segments:
+        start_stream = "0:a:0"
+        if pos > 0:
+            start_stream = "a{0}".format(pos-1)
+        
+        end_stream = "[a{0}]".format(pos)
+
+        semicolon = ";"
+        if pos == len(segments)-1:
+            semicolon = ""
+            end_stream = ""
+
+        complex_filter += "[{0}]volume=enable='between(t,{1},{2})':volume=0{3}{4}".format(start_stream, segment['start'], segment['end'], end_stream, semicolon)
+        pos += 1
+
+    subprocess.call(['ffmpeg', '-y', '-i', inputfile, '-filter_complex', complex_filter, out])
+
+
 def main():
     parser = argparse.ArgumentParser(description='Audiogrep: splice together audio based on search phrases')
 
     parser.add_argument('--input', '-i', dest='inputfile', required=True, nargs='*', help='Source files to search through')
     parser.add_argument('--search', '-s', dest='search', help='Search term - to use a regular expression, use the -re flag')
     parser.add_argument('--regex', '-re', dest='regex', help='Use a regular expression for search', action='store_true')
-    parser.add_argument('--output-mode', '-m', dest='outputmode', default='sentence', choices=['sentence', 'word', 'franken'], help='Splice together phrases, or single words, or "frankenstein" sentences')
+    parser.add_argument('--output-mode', '-m', dest='outputmode', default='sentence', choices=['sentence', 'word', 'franken', 'mute'], help='Splice together phrases, or single words, or "frankenstein" sentences, or mute search words')
     parser.add_argument('--output', '-o', dest='outputfile', default='supercut.mp3', help='Name of output file')
     parser.add_argument('--transcribe', '-t', dest='transcribe', action='store_true', help='Transcribe audio files')
     parser.add_argument('--extract', '-x', dest='extract', help='Extract all individual words from an audio file and write them to disk.', action='store_true')
@@ -404,7 +430,6 @@ def main():
             print('No results for "' + args.search + '"')
             sys.exit()
 
-        print('Generating supercut')
         if args.demo:
             for s in segments:
                 if args.outputmode == 'sentence':
@@ -412,7 +437,12 @@ def main():
                 else:
                     print(s['words'])
         else:
-            compose(segments, out=args.outputfile, padding=args.padding, crossfade=args.crossfade, layer=args.layer)
+            if args.outputmode == 'mute':
+                print('Muting words')
+                mute(segments, args.inputfile[0], out=args.outputfile)
+            else:
+                print('Generating supercut')
+                compose(segments, out=args.outputfile, padding=args.padding, crossfade=args.crossfade, layer=args.layer)
     elif args.extract:
         extract_words(args.inputfile)
 

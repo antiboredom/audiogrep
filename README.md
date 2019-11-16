@@ -71,7 +71,7 @@ mp3 file or pattern for input
 Name of the file to generate. By default this is "supercut.mp3"
 
 #### --search / -s
-Search term
+Search term. For the mute ouput mode a set of comma seperated values is allowed so the user can mute multiple words in a single pass.
 
 #### --output-mode / -m
 Splice together phrases, single words, fragments with wildcards, or "frankenstein" sentences.
@@ -80,6 +80,7 @@ Options are:
 * word
 * fragment
 * franken
+* mute
 
 #### --padding / -p
 Time in milliseconds to add between audio segments. Default is 0.
