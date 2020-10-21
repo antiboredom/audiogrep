@@ -7,16 +7,29 @@ Here's some [sample output](http://lav.io/2015/02/audiogrep-automatic-audio-supe
 
 ## Requirements
 Install using pip
-```
+```bash
 pip install audiogrep
 ```
-Install [ffmpeg](http://ffmpeg.org/) with Ogg/Vorbis support. If you're on a mac with [homebrew](http://brew.sh/) you can install ffmpeg with:
+Install [ffmpeg](http://ffmpeg.org/) with Ogg/Vorbis support. If you're on a Mac with [Homebrew](http://brew.sh/) you can install with the instruction on [this repository](https://github.com/homebrew-ffmpeg/homebrew-ffmpeg/) to get it working:
+
+```bash
+# uninstall ffmpeg if you had already installed
+brew uninstall ffmpeg
+# add this Homebrew tap
+brew tap homebrew-ffmpeg/ffmpeg
+# install ffmpeg with libvpx and libvorbis support
+brew install homebrew-ffmpeg/ffmpeg/ffmpeg
 ```
+
+Before, I used this option, but it's not available anymore.
+
+```bash
 brew install ffmpeg --with-libvpx --with-libvorbis
 ```
-Finally, install [CMU Pocketsphinx](http://cmusphinx.sourceforge.net/). For mac
-users I followed [these instructions](https://github.com/watsonbox/homebrew-cmu-sphinx) to get it working:
-```
+
+Finally, install [CMU Pocketsphinx](http://cmusphinx.sourceforge.net/). For Mac users, I followed [these instructions](https://github.com/watsonbox/homebrew-cmu-sphinx) to get it working:
+
+```bash
 brew tap watsonbox/cmu-sphinx
 brew install --HEAD watsonbox/cmu-sphinx/cmu-sphinxbase
 brew install --HEAD watsonbox/cmu-sphinx/cmu-sphinxtrain # optional
