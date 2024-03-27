@@ -1,6 +1,8 @@
 Audiogrep
 =========
 
+## alert! this package is no longer being updated! use [videogrep](https://github.com/antiboredom/videogrep) instead (which now supports audio). 
+
 Audiogrep transcribes audio files and then creates "audio supercuts" based on search phrases. It uses [CMU Pocketsphinx](http://cmusphinx.sourceforge.net/) for speech-to-text and [pydub](http://pydub.com/) to stitch things together.
 
 Here's some [sample output](http://lav.io/2015/02/audiogrep-automatic-audio-supercuts/).
